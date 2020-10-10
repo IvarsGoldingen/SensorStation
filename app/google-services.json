@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "116923192491",
+    "firebase_url": "https://esp32test-ef408.firebaseio.com",
+    "project_id": "esp32test-ef408",
+    "storage_bucket": "esp32test-ef408.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116923192491:android:685c179d56218756c9d3ee",
+        "android_client_info": {
+          "package_name": "com.example.sensorstation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "116923192491-qa3jpq5crai475srjsem366sfo81e64f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtUsYnBIAZcvuMPu2e8JioRnn-cjlbLxo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "116923192491-qa3jpq5crai475srjsem366sfo81e64f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
