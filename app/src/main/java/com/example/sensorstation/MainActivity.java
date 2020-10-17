@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     TextView hum2TV;
     @BindView(R.id.list_btn)
     Button listBtn;
+    @BindView(R.id.Tvalue2) TextView temp2TV;
+    @BindView(R.id.PressValue) TextView pressureTV;
 
     DatabaseReference fbRef;
     ValueEventListener listener;
@@ -41,9 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     //CO2 value smoothed
     int smoothCO2 = 400;
-    //Lasy CO2 measurement
+    //Last CO2 measurement
     int lastCO2Measurement = 400;
-    //smoothing coedicient
+    //smoothing coeficient
     double smoothing = 0.4;
     //timer for smoothing
     Timer smoothCO2Timer;
@@ -88,20 +90,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(logListIntent);
     }
 
-    void makePerfectCirclesUi(){
-        //int width = co2TV.getMeasuredWidth();
-        android.view.ViewGroup.LayoutParams mParams = co2TV.getLayoutParams();
-        mParams.height = co2TV.getWidth();
-        co2TV.setLayoutParams(mParams);
-        //co2TV.setLayoutParams(new ViewGroup.LayoutParams());
-        //co2TV.setHeight(width);
-    }
-
     private void updateSensorDataUI(SensorStation sensors){
         //co2TV.setText(String.valueOf(lastCO2Measurement));
         tvocTV.setText(String.valueOf(sensors.getTVOC()));
         tempTV.setText(String.valueOf(sensors.getTemperature()));
         hum2TV.setText(String.valueOf(sensors.getHumidity()));
+        pressureTV.setText(String.format("%.1f",sensors.getPressure()));
+        temp2TV.setText(String.format("%.1f",sensors.getTemperature2()));
     }
 
     //Call the runnnalbe on the UI thread

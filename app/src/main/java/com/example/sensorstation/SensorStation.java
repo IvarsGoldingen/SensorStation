@@ -6,6 +6,8 @@ public class SensorStation {
     private double Humidity = NO_DATA_PROVIDED;
     private int TVOC = NO_DATA_PROVIDED;
     private double Temperature = NO_DATA_PROVIDED;
+    private double temperature2 = NO_DATA_PROVIDED;
+    private double pressure = NO_DATA_PROVIDED;
     private boolean DHT_valid = false;
     private boolean SGP_valid = false;
 
@@ -20,13 +22,17 @@ public class SensorStation {
             int CO2,
             int TVOC,
             boolean DHT_valid,
-            boolean SGP_valid){
+            boolean SGP_valid,
+            double temperature2,
+            double pressure){
         this.Humidity = humidity;
         this.Temperature = temperature;
         this.CO2 = CO2;
         this.TVOC = TVOC;
         this.DHT_valid = DHT_valid;
         this.SGP_valid = SGP_valid;
+        this.temperature2 = temperature2;
+        this.pressure = pressure;
     }
 
     public int getCO2() {
@@ -75,5 +81,21 @@ public class SensorStation {
 
     public void setSGP_valid(boolean SGP_valid) {
         this.SGP_valid = SGP_valid;
+    }
+
+    public double getTemperature2() {
+        return temperature2;
+    }
+
+    public void setTemperature2(double temperature2) {
+        this.temperature2 = temperature2;
+    }
+
+    public double getPressure() {
+        return pressure;
+    }
+
+    public void setPressure(double pressure) {
+        this.pressure = pressure;
     }
 }
