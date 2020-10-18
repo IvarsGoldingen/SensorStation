@@ -50,11 +50,9 @@ public class HistoryListActivity extends AppCompatActivity {
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                Log.d(TAG, "onChildAdded");
                 //snapshot - contains the added log
-                LogItem test = snapshot.getValue(LogItem.class);
-                mLogArrayList.add(test);
-                Log.d(TAG, String.valueOf(mLogArrayList.size()));
+                LogItem logData = snapshot.getValue(LogItem.class);
+                mLogArrayList.add(logData);
                 mAdapter.notifyDataSetChanged();
             }
 

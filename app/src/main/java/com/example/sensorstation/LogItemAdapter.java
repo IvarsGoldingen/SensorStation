@@ -69,6 +69,10 @@ public class LogItemAdapter extends RecyclerView.Adapter<LogItemAdapter.LogItemV
         TextView tvTemp;
         @BindView(R.id.listTVOC)
         TextView tvTvoc;
+        @BindView(R.id.listTemp2)
+        TextView tvTemp2;
+        @BindView(R.id.listPressure)
+        TextView tvPressure2;
 
         public LogItemViewHolder(View itemVew){
             super(itemVew);
@@ -82,21 +86,27 @@ public class LogItemAdapter extends RecyclerView.Adapter<LogItemAdapter.LogItemV
             double hum = logItem.getHumidity();
             double temp = logItem.getTemperature();
             long timeStamp = logItem.getTime();
+            double temp2 = logItem.getTemperature2();
+            double pressure = logItem.getPressure();
             String timeSt = getTimeDate(timeStamp);
-            Log.d(TAG, timeSt);
-            //int time = logItem.get
             tvDate.setText(timeSt);
-            tvCO2.setText(String.valueOf(co2));
-            tvHu.setText(String.valueOf(hum));
-            tvTemp.setText(String.valueOf(temp));
-            tvTvoc.setText(String.valueOf(TVOC));
+            tvCO2.setText(co2 + " PPM");
+            tvHu.setText(hum + "%");
+            tvTemp.setText(temp + " °C");
+            tvTvoc.setText(TVOC + " PPB");
+            tvTemp2.setText(String.format("%.1f",temp2) + " °C");
+            tvPressure2.setText(String.format("%.1f",pressure)+ " hPa");
         }
 
         public String getTimeDate(long timestamp){
             try{
-                DateFormat dateFormat = getDateTimeInstance();
-                Date netDate = (new Date(timestamp));
-                return dateFormat.format(netDate);
+                Date mDate = (new Date(timestamp));
+                int day = mDate.getDate();
+                int month = mDate.getMonth() + 1;
+                int hour = mDate.getHours();
+                int minutes = mDate.getMinutes();
+                String date = day + "." + month + "\r" + hour + ":" + String.format("%02d", minutes);
+                return  date;
             } catch(Exception e) {
                 return "date";
             }

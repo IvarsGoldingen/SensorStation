@@ -8,6 +8,8 @@ public class LogItem {
     private int TVOC = NO_DATA_PROVIDED;
     private double Temperature = NO_DATA_PROVIDED;
     long Time = NO_DATA_PROVIDED;
+    private double temperature2 = NO_DATA_PROVIDED;
+    private double pressure = NO_DATA_PROVIDED;
 
     //empty constructor for FireBase
     public LogItem(){
@@ -19,12 +21,16 @@ public class LogItem {
             double temperature,
             int CO2,
             int TVOC,
-            long Time){
+            long Time,
+            double temperature2,
+            double pressure){
         this.Humidity = humidity;
         this.Temperature = temperature;
         this.CO2 = CO2;
         this.TVOC = TVOC;
         this.Time = Time;
+        this.temperature2 = temperature2;
+        this.pressure = pressure;
     }
 
     public int getCO2() {
@@ -65,5 +71,21 @@ public class LogItem {
 
     public void setTime(long time) {
         Time = time;
+    }
+
+    public double getTemperature2() {
+        return temperature2;
+    }
+
+    public void setTemperature2(double temperature2) {
+        this.temperature2 = temperature2;
+    }
+
+    public double getPressure() {
+        return pressure;
+    }
+
+    public void setPressure(double pressure) {
+        this.pressure = pressure;
     }
 }
