@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     TextView hum2TV;
     @BindView(R.id.list_btn)
     Button listBtn;
+    @BindView(R.id.graph_btn)
+    Button graphBtn;
     @BindView(R.id.Tvalue2) TextView temp2TV;
     @BindView(R.id.PressValue) TextView pressureTV;
 
@@ -90,11 +92,17 @@ public class MainActivity extends AppCompatActivity {
         startActivity(logListIntent);
     }
 
+    @OnClick(R.id.graph_btn)
+    public void openGraphActivity(){
+        Intent logListIntent = new Intent(MainActivity.this, GraphActivity.class);
+        startActivity(logListIntent);
+    }
+
     private void updateSensorDataUI(SensorStation sensors){
         //co2TV.setText(String.valueOf(lastCO2Measurement));
         tvocTV.setText(String.valueOf(sensors.getTVOC()));
-        tempTV.setText(String.valueOf(sensors.getTemperature()));
-        hum2TV.setText(String.valueOf(sensors.getHumidity()));
+        tempTV.setText(String.valueOf(String.format("%.1f",sensors.getTemperature())));
+        hum2TV.setText(String.valueOf(String.format("%.1f",sensors.getHumidity())));
         pressureTV.setText(String.format("%.1f",sensors.getPressure()));
         temp2TV.setText(String.format("%.1f",sensors.getTemperature2()));
     }

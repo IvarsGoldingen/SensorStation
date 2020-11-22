@@ -91,9 +91,9 @@ public class LogItemAdapter extends RecyclerView.Adapter<LogItemAdapter.LogItemV
             String timeSt = getTimeDate(timeStamp);
             tvDate.setText(timeSt);
             tvCO2.setText(co2 + " PPM");
-            tvHu.setText(hum + "%");
-            tvTemp.setText(temp + " °C");
-            tvTvoc.setText(TVOC + " PPB");
+            tvHu.setText(String.format("%.1f",hum) + "%");
+            tvTemp.setText(String.format("%.1f",temp) + " °C");
+            tvTvoc.setText(TVOC  + " PPB");
             tvTemp2.setText(String.format("%.1f",temp2) + " °C");
             tvPressure2.setText(String.format("%.1f",pressure)+ " hPa");
         }
