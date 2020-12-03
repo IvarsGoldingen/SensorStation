@@ -61,8 +61,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        //TODO: Make this work
-        //makePerfectCirclesUi();
 
         database = FirebaseDatabase.getInstance();
         fbRef = database.getReference().child("SensorStation");
