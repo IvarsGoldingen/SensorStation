@@ -32,7 +32,6 @@ public class HistoryListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "Created");
         setContentView(R.layout.activity_history_list);
 
         mLogArrayList = new ArrayList<LogItem>();

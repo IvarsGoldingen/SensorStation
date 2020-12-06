@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+    <item android:id="@+id/menu_graph_selection"
+        android:icon="@drawable/ic_chart"
+        android:title="chart"
+        app:showAsAction="ifRoom">
+        <menu xmlns:android="http://schemas.android.com/apk/res/android">
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/menu_itm_CO2"
+                    android:checked="true"
+                    android:title="CO2" />
+                <item android:id="@+id/menu_itm_t1"
+                    android:title="Temperature 1" />
+                <item android:id="@+id/menu_itm_t2"
+                    android:title="Temperature 2" />
+                <item android:id="@+id/menu_itm_RH"
+                    android:title="Humidity" />
+                <item android:id="@+id/menu_itm_TVOC"
+                    android:title="TVOC" />
+                <item android:id="@+id/menu_itm_Pressure"
+                    android:title="Pressure" />
+            </group>
+        </menu>
+    </item>
+</menu>

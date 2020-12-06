@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+    <item android:id="@+id/menu_main_graphs"
+        android:icon="@drawable/ic_chart"
+        android:title="Graphs"
+        app:showAsAction="ifRoom">
+    </item>
+    <item android:id="@+id/menu_main_list"
+        android:icon="@drawable/ic_baseline_list_48"
+        android:title="List"
+        app:showAsAction="ifRoom">
+    </item>
+</menu>

@@ -10,6 +10,7 @@ public class SensorStation {
     private double pressure = NO_DATA_PROVIDED;
     private boolean DHT_valid = false;
     private boolean SGP_valid = false;
+    private long LastUpdate = NO_DATA_PROVIDED;
 
     //empty constructor for FireBase
     public SensorStation(){
@@ -24,7 +25,8 @@ public class SensorStation {
             boolean DHT_valid,
             boolean SGP_valid,
             double temperature2,
-            double pressure){
+            double pressure,
+            long lastUpdate){
         this.Humidity = humidity;
         this.Temperature = temperature;
         this.CO2 = CO2;
@@ -33,6 +35,7 @@ public class SensorStation {
         this.SGP_valid = SGP_valid;
         this.temperature2 = temperature2;
         this.pressure = pressure;
+        this.LastUpdate = lastUpdate;
     }
 
     public int getCO2() {
@@ -97,5 +100,13 @@ public class SensorStation {
 
     public void setPressure(double pressure) {
         this.pressure = pressure;
+    }
+
+    public long getLastUpdate() {
+        return LastUpdate;
+    }
+
+    public void setLastUpdate(long lastUpdate) {
+        this.LastUpdate = lastUpdate;
     }
 }
