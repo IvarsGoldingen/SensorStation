@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,13 +14,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
@@ -29,6 +34,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
+
+    /*
+    //TODO:test if checking of new or old values works correctly
+    //TODO: in MC set auto reconnects to Wifi
+    //TODO: in MC set loading animation for WiFi connection
+    */
 
     @BindView(R.id.CO2value)
     TextView co2TV;
@@ -41,14 +52,22 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.Tvalue2) TextView temp2TV;
     @BindView(R.id.PressValue) TextView pressureTV;
 
-    DatabaseReference fbRef;
-    ValueEventListener listener;
-    FirebaseDatabase database;
+    private DatabaseReference fbRef;
+    private ValueEventListener listener;
+    private FirebaseDatabase database;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     //If the value received from firebase is older than this, display it to the user
     private static final long MAX_TIME_DIF_S = 60;
     private static final long MAX_TIME_DIF_MS = MAX_TIME_DIF_S * 1000;
     private static final int COLOR_OLD = 0xFF656363;
+    // Arbitrary request code value
+    private static final int RC_SIGN_IN = 123;
+    // The maximum amount of time allowed between receiving new values
+    private static final long OLD_VALUE_TIME_MS = 10000;
+    //TAG
+    private static final String TAG = "Sensor Station MainActivity";
 
     //For the initial read from the firebase
     boolean firstValue = true;
@@ -62,8 +81,7 @@ public class MainActivity extends AppCompatActivity {
     double smoothing = 0.4;
     //timer for smoothing
     Timer smoothCO2Timer;
-    //TAG
-    String TAG = "Sensor Station MainActivity";
+
 
     //objects for displaying the values in the main activity
     MeasurementDisplay display_CO2 = new MeasurementDisplay(
@@ -109,14 +127,6 @@ public class MainActivity extends AppCompatActivity {
             AlarmWarningSettings.PR_HYS,
             AlarmWarningSettings.PR_FORMAT);
 
-    /*
-    //TODO:display message if no data for some time. Make a timer that checks if values are
-    //comming in
-    //TODO:Update FB security rules
-    //TODO: in MC set auto reconnects to Wifi
-    //TODO: in MC set loading animation for WiFi connection
-    */
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.w("TAG", "Start");
@@ -126,6 +136,11 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         database = FirebaseDatabase.getInstance();
+        mFirebaseAuth = FirebaseAuth.getInstance();
+
+        //Start a timer which will display that no new values have been added for some time
+        startOldValueTimer();
+
         fbRef = database.getReference().child("SensorStation");
         listener = (new ValueEventListener() {
             @Override
@@ -143,6 +158,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         fbRef.addValueEventListener(listener);
+
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null){
+                    //user signed in
+                    View sv = findViewById(R.id.main_root);
+                    Snackbar.make(sv, "Signed in!", Snackbar.LENGTH_SHORT).show();
+                } else {
+                    //user not signed in
+                    startActivityForResult(
+                            AuthUI.getInstance()
+                                    .createSignInIntentBuilder()
+                                    .setIsSmartLockEnabled(false)
+                                    .setAvailableProviders(Arrays.asList(
+                                            new AuthUI.IdpConfig.GoogleBuilder().build(),
+                                            new AuthUI.IdpConfig.EmailBuilder().build(),
+                                            new AuthUI.IdpConfig.AnonymousBuilder().build()))
+                                    .build(),
+                            RC_SIGN_IN);
+                }
+            }
+        };
     }
 
     private void updateSensorDataUI(SensorStation sensors){
@@ -155,8 +194,9 @@ public class MainActivity extends AppCompatActivity {
             //set the CO2 value directly only for the first time
             display_CO2.setValue(sensors.getCO2());
             display_CO2.updateView(co2TV);
+            display_CO2.setValid(sensors.isSGP_valid());
             //Update CO2 value by filtering using a timer
-            startTimer();
+            startCO2FilterTimer();
             //the first vale has been read
             firstValue = false;
             //get the time reading to check if the first value is new
@@ -169,8 +209,11 @@ public class MainActivity extends AppCompatActivity {
             //Remove gray background from all values since a new value has been received
             oldValues = false;
             setAllDisplaysOld(false);
+            //Restart the timer that waits to
+            restartOldValueTimer();
         }
         //Set valid
+        display_CO2.setValid(sensors.isSGP_valid());
         display_TVOC.setValid(sensors.isSGP_valid());
         display_T1.setValid(sensors.isDHT_valid());
         display_RH.setValid(sensors.isDHT_valid());
@@ -198,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Last update ms ago: " + String.valueOf(differenceMS));
         if (differenceMS > MAX_TIME_DIF_MS){
             View sv = findViewById(R.id.main_root);
-            Snackbar.make(sv, "Old value", Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(sv, "Old values", Snackbar.LENGTH_SHORT).show();
             setOldValuesUI();
             //setup all display fields to show up as old
             setAllDisplaysOld(true);
@@ -217,11 +260,11 @@ public class MainActivity extends AppCompatActivity {
 
     //Call the runnnalbe on the UI thread
     private void timerMethod(){
-        this.runOnUiThread(FilterCO2);
+        this.runOnUiThread(FilterCO2Runnable);
     }
 
     //Timer that smooths out the CO2 measurement
-    private void startTimer(){
+    private void startCO2FilterTimer(){
         smoothCO2Timer = new Timer();
         smoothCO2Timer.schedule(new TimerTask() {
             @Override
@@ -230,6 +273,16 @@ public class MainActivity extends AppCompatActivity {
             }
         },1000,1000);
     }
+
+    //A runnable that the timer can run on the UI thread
+    private final Runnable FilterCO2Runnable = new Runnable() {
+        @Override
+        public void run() {
+            display_CO2.setValue((display_CO2.getValue() +
+                    ((lastCO2Measurement - display_CO2.getValue()) * smoothing)));
+            display_CO2.updateView(co2TV);
+        }
+    };
 
     private void setAllDisplaysOld(boolean isOld){
         display_CO2.setOld(isOld);
@@ -240,20 +293,11 @@ public class MainActivity extends AppCompatActivity {
         display_PR.setOld(isOld);
     }
 
-    //A runnable that the timer can run on the UI thread
-    private Runnable FilterCO2 = new Runnable() {
-        @Override
-        public void run() {
-            display_CO2.setValue((double)(display_CO2.getValue() +
-                    ((lastCO2Measurement - display_CO2.getValue()) * smoothing)));
-            display_CO2.updateView(co2TV);
-        }
-    };
-
     @Override
     protected void onResume() {
         Log.d(TAG, "On resume");
         database.goOnline();
+        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         super.onResume();
     }
 
@@ -261,6 +305,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         database.goOffline();
         smoothCO2Timer.cancel();
+        smoothCO2Timer.purge();
+        mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+        timerHandler.removeCallbacks(runnableOldValueTimer);
         super.onPause();
     }
 
@@ -286,5 +333,28 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    //Timer for checking if new values have stoppped comming in
+    Handler timerHandler = new Handler();
+    Runnable runnableOldValueTimer = new Runnable() {
+        @Override
+        public void run() {
+            //user signed in
+            View sv = findViewById(R.id.main_root);
+            Snackbar.make(sv, "No new values comming in", Snackbar.LENGTH_SHORT).show();
+            //setup all display fields to show up as old
+            setAllDisplaysOld(true);
+            oldValues = true;
+        }
+    };
+
+    private void startOldValueTimer(){
+        timerHandler.postDelayed(runnableOldValueTimer, OLD_VALUE_TIME_MS);
+    }
+
+    private void restartOldValueTimer(){
+        timerHandler.removeCallbacks(runnableOldValueTimer);
+        timerHandler.postDelayed(runnableOldValueTimer, OLD_VALUE_TIME_MS);
     }
 }
