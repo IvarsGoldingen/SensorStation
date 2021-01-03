@@ -11,6 +11,7 @@ import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
@@ -68,6 +69,11 @@ public class GraphActivity extends AppCompatActivity implements SharedPreference
         super.onCreate(savedInstanceState);
         setContentView(R.layout.graph_activity);
         ButterKnife.bind(this);
+        //To make the back button look correct
+        ActionBar actionBar = this.getSupportActionBar();
+        if (actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
         readItemToShowFromPrefs();
         //LIsten for changes in preferences
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);

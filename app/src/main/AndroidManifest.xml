@@ -12,13 +12,16 @@
         <activity android:name=".GraphSettingsActivity"
             android:parentActivityName=".GraphActivity">
         </activity>
-        <activity android:name=".HistoryListActivity" />
+        <activity android:name=".HistoryListActivity"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:launchMode="singleTop"
             android:name=".GraphActivity"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="landscape">
         </activity>
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

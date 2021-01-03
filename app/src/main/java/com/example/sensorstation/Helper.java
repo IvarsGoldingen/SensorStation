@@ -16,21 +16,21 @@ public class Helper {
     public static String getDayNameString(int dayOfWeek){
         switch (dayOfWeek){
             case Calendar.MONDAY:
-                return "Pirmd";
+                return "PIRMD";
             case Calendar.TUESDAY:
-                return "Otrd";
+                return "OTRD";
             case Calendar.WEDNESDAY:
-                return "Tresd";
+                return "TREŠD";
             case Calendar.THURSDAY:
-                return "Ceturd";
+                return "CETURTD";
             case Calendar.FRIDAY:
-                return "Piektd";
+                return "PIEKTD";
             case Calendar.SATURDAY:
-                return "Sestd";
+                return "SESTD";
             case Calendar.SUNDAY:
-                return "Svetd";
+                return "SVĒTD";
             default:
-                return"err";
+                return"ERR";
         }
     }
 

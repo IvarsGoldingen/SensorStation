@@ -36,8 +36,6 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity {
 
     /**
-     * TODO:test if checking of new or old values works correctly
-     * TODO:Make a settings menu for graph
      * TODO: Sometimes the MC only uploads the time without values
     */
 
