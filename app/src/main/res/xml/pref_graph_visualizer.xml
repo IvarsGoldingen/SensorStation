@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <EditTextPreference
+        android:defaultValue="400"
+        android:key="PREF_KEY_GR_CO2_Y_MIN"
+        android:title="CO2 min Y"/>
+    <EditTextPreference
+        android:defaultValue="1000"
+        android:key="PREF_KEY_GR_CO2_Y_MAX"
+        android:title="CO2 max Y"/>
+    <EditTextPreference
+        android:defaultValue="13"
+        android:key="PREF_KEY_GR_CO2_VERT_LABELS"
+        android:title="CO2 number of vertical labels"/>
+
+    <EditTextPreference
+        android:defaultValue="0"
+        android:key="PREF_KEY_GR_T1_Y_MIN"
+        android:title="T1 min Y"/>
+    <EditTextPreference
+        android:defaultValue="40"
+        android:key="PREF_KEY_GR_T1_Y_MAX"
+        android:title="T1 max Y"/>
+    <EditTextPreference
+        android:defaultValue="9"
+        android:key="PREF_KEY_GR_T1_VERT_LABELS"
+        android:title="T1 number of vertical labels"/>
+
+    <EditTextPreference
+        android:defaultValue="0"
+        android:key="PREF_KEY_GR_T2_Y_MIN"
+        android:title="T2 min Y"/>
+    <EditTextPreference
+        android:defaultValue="40"
+        android:key="PREF_KEY_GR_T2_Y_MAX"
+        android:title="T2 max Y"/>
+    <EditTextPreference
+        android:defaultValue="9"
+        android:key="PREF_KEY_GR_T2_VERT_LABELS"
+        android:title="T2 number of vertical labels"/>
+
+    <EditTextPreference
+        android:defaultValue="0"
+        android:key="PREF_KEY_GR_RH_Y_MIN"
+        android:title="Humidity min Y"/>
+    <EditTextPreference
+        android:defaultValue="100"
+        android:key="PREF_KEY_GR_RH_Y_MAX"
+        android:title="Humidity max Y"/>
+    <EditTextPreference
+        android:defaultValue="11"
+        android:key="PREF_KEY_GR_RH_VERT_LABELS"
+        android:title="Humidity number of vertical labels"/>
+
+    <EditTextPreference
+        android:defaultValue="0"
+        android:key="PREF_KEY_GR_TVOC_Y_MIN"
+        android:title="TVOC min Y"/>
+    <EditTextPreference
+        android:defaultValue="1000"
+        android:key="PREF_KEY_GR_TVOC_Y_MAX"
+        android:title="TVOC max Y"/>
+    <EditTextPreference
+        android:defaultValue="11"
+        android:key="PREF_KEY_GR_TVOC_VERT_LABELS"
+        android:title="TVOC number of vertical labels"/>
+
+    <EditTextPreference
+        android:defaultValue="980"
+        android:key="PREF_KEY_GR_PR_Y_MIN"
+        android:title="Pressure min Y"/>
+    <EditTextPreference
+        android:defaultValue="1030"
+        android:key="PREF_KEY_GR_PR_Y_MAX"
+        android:title="Pressure max Y"/>
+    <EditTextPreference
+        android:defaultValue="6"
+        android:key="PREF_KEY_GR_PR_VERT_LABELS"
+        android:title="Pressure number of vertical labels"/>
+</PreferenceScreen>

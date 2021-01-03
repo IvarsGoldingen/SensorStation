@@ -35,10 +35,10 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-    /*
-    //TODO:test if checking of new or old values works correctly
-    //TODO: in MC set auto reconnects to Wifi
-    //TODO: in MC set loading animation for WiFi connection
+    /**
+     * TODO:test if checking of new or old values works correctly
+     * TODO:Make a settings menu for graph
+     * TODO: Sometimes the MC only uploads the time without values
     */
 
     @BindView(R.id.CO2value)
@@ -209,9 +209,9 @@ public class MainActivity extends AppCompatActivity {
             //Remove gray background from all values since a new value has been received
             oldValues = false;
             setAllDisplaysOld(false);
-            //Restart the timer that waits to
-            restartOldValueTimer();
         }
+        //New value has come in, restart the timer looking for old values
+        restartOldValueTimer();
         //Set valid
         display_CO2.setValid(sensors.isSGP_valid());
         display_TVOC.setValid(sensors.isSGP_valid());
@@ -304,8 +304,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         database.goOffline();
-        smoothCO2Timer.cancel();
-        smoothCO2Timer.purge();
+        if (smoothCO2Timer != null){
+            smoothCO2Timer.cancel();
+            smoothCO2Timer.purge();
+        }
         mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         timerHandler.removeCallbacks(runnableOldValueTimer);
         super.onPause();

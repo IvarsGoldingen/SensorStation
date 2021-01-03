@@ -5,7 +5,7 @@
     android:layout_width="match_parent">
     <item android:id="@+id/menu_graph_selection"
         android:icon="@drawable/ic_chart"
-        android:title="chart"
+        android:title="Chart"
         app:showAsAction="ifRoom">
         <menu xmlns:android="http://schemas.android.com/apk/res/android">
             <group android:checkableBehavior="single">
@@ -24,5 +24,10 @@
                     android:title="Pressure" />
             </group>
         </menu>
+    </item>
+    <item android:id="@+id/menu_graph_settings"
+        android:icon="@drawable/ic_settings_48"
+        android:title="Settings"
+        app:showAsAction="ifRoom">
     </item>
 </menu>
