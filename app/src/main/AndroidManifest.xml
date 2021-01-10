@@ -9,21 +9,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".GraphSettingsActivity"
-            android:parentActivityName=".GraphActivity">
-        </activity>
-        <activity android:name=".HistoryListActivity"
-            android:parentActivityName=".MainActivity"/>
+        <activity android:name=".MainSettingsActivity"></activity>
         <activity
-            android:launchMode="singleTop"
+            android:name=".GraphSettingsActivity"
+            android:parentActivityName=".GraphActivity"></activity>
+        <activity
+            android:name=".HistoryListActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
             android:name=".GraphActivity"
+            android:launchMode="singleTop"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="landscape">
-        </activity>
-        <activity android:name=".MainActivity"
+            android:screenOrientation="landscape"></activity>
+        <activity
+            android:name=".MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

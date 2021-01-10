@@ -2,7 +2,7 @@ package com.example.sensorstation;
 
 import java.text.DecimalFormat;
 
-public class AlarmWarningSettings {
+public class DefaultAlarmWarningSettings {
     public static final float CO2_LA = 399;
     public static final float CO2_LW = 399;
     public static final float CO2_HW = 600;

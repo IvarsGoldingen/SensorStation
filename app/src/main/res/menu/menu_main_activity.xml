@@ -13,4 +13,8 @@
         android:title="List"
         app:showAsAction="ifRoom">
     </item>
+    <item android:id="@+id/menu_main_settings"
+        android:title="Settings"
+        android:icon="@drawable/ic_settings_48"
+        app:showAsAction="ifRoom"/>
 </menu>

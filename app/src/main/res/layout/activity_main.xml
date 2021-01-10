@@ -16,15 +16,20 @@
             android:layout_width="match_parent"
             app:layout_constraintTop_toTopOf="parent">
             <LinearLayout
+                android:id="@+id/view_CO2_frame"
+                android:clickable="true"
                 style="@style/styleMeasFieldFrame">
                 <TextView
+                    android:clickable="false"
                     style="@style/styleMeasFieldTitle"
                     android:text="CO2 PPM"/>
                 <com.example.sensorstation.SquareTextView
+                    android:clickable="false"
                     style="@style/styleMeasField"
                     android:id="@+id/CO2value"/>
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/view_TVOC_frame"
                 style="@style/styleMeasFieldFrame">
                 <TextView
                     style="@style/styleMeasFieldTitle"
@@ -40,8 +45,8 @@
             android:id="@+id/values2"
             app:layout_constraintTop_toBottomOf="@+id/values1">
             <LinearLayout
+                android:id="@+id/view_T1_frame"
                 style="@style/styleMeasFieldFrame">
-
                 <TextView
                     style="@style/styleMeasFieldTitle"
                     android:layout_width="wrap_content"
@@ -51,6 +56,7 @@
                     style="@style/styleMeasField"/>
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/view_RH_frame"
                 style="@style/styleMeasFieldFrame">
                 <TextView
                     style="@style/styleMeasFieldTitle"
@@ -66,6 +72,7 @@
             android:id="@+id/values3"
             app:layout_constraintTop_toBottomOf="@+id/values2">
             <LinearLayout
+                android:id="@+id/view_T2_frame"
                 style="@style/styleMeasFieldFrame">
                 <TextView
                     style="@style/styleMeasFieldTitle"
@@ -75,6 +82,7 @@
                     style="@style/styleMeasField"/>
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/view_PR_frame"
                 style="@style/styleMeasFieldFrame">
                 <TextView
                     style="@style/styleMeasFieldTitle"

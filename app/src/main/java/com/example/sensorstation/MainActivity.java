@@ -3,6 +3,8 @@ package com.example.sensorstation;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -12,6 +14,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.firebase.ui.auth.AuthUI;
@@ -37,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * TODO: Sometimes the MC only uploads the time without values
+     * TODO: Evening notification of CO2
+     * TODO: CO2 filter value and frequency setting
+     * TODO: Save HLA, LLA and other settings to a seperate shared preferences file
+     * TODO: Implement hysteresis for MeasurementDisplay
     */
 
     @BindView(R.id.CO2value)
@@ -49,6 +59,18 @@ public class MainActivity extends AppCompatActivity {
     TextView hum2TV;
     @BindView(R.id.Tvalue2) TextView temp2TV;
     @BindView(R.id.PressValue) TextView pressureTV;
+    @BindView(R.id.view_CO2_frame)
+    LinearLayout frameCO2;
+    @BindView(R.id.view_TVOC_frame)
+    LinearLayout frameTVOC;
+    @BindView(R.id.view_T1_frame)
+    LinearLayout frameT1;
+    @BindView(R.id.view_T2_frame)
+    LinearLayout frameT2;
+    @BindView(R.id.view_RH_frame)
+    LinearLayout frameRH;
+    @BindView(R.id.view_PR_frame)
+    LinearLayout framePR;
 
     private DatabaseReference fbRef;
     private ValueEventListener listener;
@@ -80,50 +102,71 @@ public class MainActivity extends AppCompatActivity {
     //timer for smoothing
     Timer smoothCO2Timer;
 
-
     //objects for displaying the values in the main activity
-    MeasurementDisplay display_CO2 = new MeasurementDisplay(
-            AlarmWarningSettings.CO2_LA,
-            AlarmWarningSettings.CO2_LW,
-            AlarmWarningSettings.CO2_HW,
-            AlarmWarningSettings.CO2_HA,
-            AlarmWarningSettings.CO2_HYS,
-            AlarmWarningSettings.CO2_FORMAT);
-    MeasurementDisplay display_TVOC = new MeasurementDisplay(
-            AlarmWarningSettings.TVOC_LA,
-            AlarmWarningSettings.TVOC_LW,
-            AlarmWarningSettings.TVOC_HW,
-            AlarmWarningSettings.TVOC_HA,
-            AlarmWarningSettings.TVOC_HYS,
-            AlarmWarningSettings.TVOC_FORMAT);
-    MeasurementDisplay display_T1 = new MeasurementDisplay(
-            AlarmWarningSettings.T1_LA,
-            AlarmWarningSettings.T1_LW,
-            AlarmWarningSettings.T1_HW,
-            AlarmWarningSettings.T1_HA,
-            AlarmWarningSettings.T1_HYS,
-            AlarmWarningSettings.T1_FORMAT);
-    MeasurementDisplay display_T2 = new MeasurementDisplay(
-            AlarmWarningSettings.T2_LA,
-            AlarmWarningSettings.T2_LW,
-            AlarmWarningSettings.T2_HW,
-            AlarmWarningSettings.T2_HA,
-            AlarmWarningSettings.T2_HYS,
-            AlarmWarningSettings.T2_FORMAT);
-    MeasurementDisplay display_RH = new MeasurementDisplay(
-            AlarmWarningSettings.RH_LA,
-            AlarmWarningSettings.RH_LW,
-            AlarmWarningSettings.RH_HW,
-            AlarmWarningSettings.RH_HA,
-            AlarmWarningSettings.RH_HYS,
-            AlarmWarningSettings.RH_FORMAT);
-    MeasurementDisplay display_PR = new MeasurementDisplay(
-            AlarmWarningSettings.PR_LA,
-            AlarmWarningSettings.PR_LW,
-            AlarmWarningSettings.PR_HW,
-            AlarmWarningSettings.PR_HA,
-            AlarmWarningSettings.PR_HYS,
-            AlarmWarningSettings.PR_FORMAT);
+    MeasurementDisplay display_CO2;
+    MeasurementDisplay display_TVOC;
+    MeasurementDisplay display_T1;
+    MeasurementDisplay display_T2;
+    MeasurementDisplay display_RH;
+    MeasurementDisplay display_PR;
+
+    void createMeasurementDisplayObjects(){
+        //objects for displaying the values in the main activity
+        display_CO2 = new MeasurementDisplay(
+                this,
+                "CO2_PREFS",
+                DefaultAlarmWarningSettings.CO2_LA,
+                DefaultAlarmWarningSettings.CO2_LW,
+                DefaultAlarmWarningSettings.CO2_HW,
+                DefaultAlarmWarningSettings.CO2_HA,
+                DefaultAlarmWarningSettings.CO2_HYS,
+                DefaultAlarmWarningSettings.CO2_FORMAT);
+        display_TVOC = new MeasurementDisplay(
+                this,
+                "TVOC_PREFS",
+                DefaultAlarmWarningSettings.TVOC_LA,
+                DefaultAlarmWarningSettings.TVOC_LW,
+                DefaultAlarmWarningSettings.TVOC_HW,
+                DefaultAlarmWarningSettings.TVOC_HA,
+                DefaultAlarmWarningSettings.TVOC_HYS,
+                DefaultAlarmWarningSettings.TVOC_FORMAT);
+        display_T1 = new MeasurementDisplay(
+                this,
+                "T1_PREFS",
+                DefaultAlarmWarningSettings.T1_LA,
+                DefaultAlarmWarningSettings.T1_LW,
+                DefaultAlarmWarningSettings.T1_HW,
+                DefaultAlarmWarningSettings.T1_HA,
+                DefaultAlarmWarningSettings.T1_HYS,
+                DefaultAlarmWarningSettings.T1_FORMAT);
+        display_T2 = new MeasurementDisplay(
+                this,
+                "T2_PREFS",
+                DefaultAlarmWarningSettings.T2_LA,
+                DefaultAlarmWarningSettings.T2_LW,
+                DefaultAlarmWarningSettings.T2_HW,
+                DefaultAlarmWarningSettings.T2_HA,
+                DefaultAlarmWarningSettings.T2_HYS,
+                DefaultAlarmWarningSettings.T2_FORMAT);
+        display_RH = new MeasurementDisplay(
+                this,
+                "RH_PREFS",
+                DefaultAlarmWarningSettings.RH_LA,
+                DefaultAlarmWarningSettings.RH_LW,
+                DefaultAlarmWarningSettings.RH_HW,
+                DefaultAlarmWarningSettings.RH_HA,
+                DefaultAlarmWarningSettings.RH_HYS,
+                DefaultAlarmWarningSettings.RH_FORMAT);
+        display_PR = new MeasurementDisplay(
+                this,
+                "PR_PREFS",
+                DefaultAlarmWarningSettings.PR_LA,
+                DefaultAlarmWarningSettings.PR_LW,
+                DefaultAlarmWarningSettings.PR_HW,
+                DefaultAlarmWarningSettings.PR_HA,
+                DefaultAlarmWarningSettings.PR_HYS,
+                DefaultAlarmWarningSettings.PR_FORMAT);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        createMeasurementDisplayObjects();
 
         database = FirebaseDatabase.getInstance();
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -164,7 +208,11 @@ public class MainActivity extends AppCompatActivity {
                 if (user != null){
                     //user signed in
                     View sv = findViewById(R.id.main_root);
-                    Snackbar.make(sv, "Signed in!", Snackbar.LENGTH_SHORT).show();
+                    if (firstValue){
+                        //so the message does not apear every time resuming the app
+                        Snackbar.make(sv, "Signed in!", Snackbar.LENGTH_SHORT).show();
+                    }
+
                 } else {
                     //user not signed in
                     startActivityForResult(
@@ -180,6 +228,123 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        View.OnClickListener sensorItemClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int id = v.getId();
+                createAlertDialogForReading(id);
+            }
+        };
+
+        frameCO2.setOnClickListener(sensorItemClickListener);
+        frameTVOC.setOnClickListener(sensorItemClickListener);
+        frameT1.setOnClickListener(sensorItemClickListener);
+        frameT2.setOnClickListener(sensorItemClickListener);
+        frameRH.setOnClickListener(sensorItemClickListener);
+        framePR.setOnClickListener(sensorItemClickListener);
+    }
+
+    //Create alert dialog for filling HLA, HL, LL, LLA,HYSt values
+    private void createAlertDialogForReading(int clickedReadingId){
+        //get the layout for the AlertDialog
+        final View view = getLayoutInflater().inflate(R.layout.sensor_setup_layout, null);
+        MeasurementDisplay clickedMeasurement = findAccordingSensorDisplay(clickedReadingId);
+        fillInAlertDialogWithValues(view,clickedMeasurement);
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
+        alertBuilder.setTitle("Test");
+        alertBuilder.setView(view);
+        alertBuilder.setPositiveButton("SAVE",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        boolean settingsCorrect = saveAlarmWarningSettings(clickedReadingId, view);
+                        View sv = findViewById(R.id.main_root);
+                        if (settingsCorrect){
+                            Snackbar.make(sv, "Values saved successfully", Snackbar.LENGTH_SHORT).show();
+                        } else {
+                            Snackbar.make(sv, "Error saving values", Snackbar.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+        AlertDialog dialog = alertBuilder.create();
+        dialog.show();
+
+        //SET THE SAVE BUTTON IN THE CENTER
+        final Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)positiveButton.getLayoutParams();
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        positiveButton.setLayoutParams(params);
+    }
+
+    private boolean saveAlarmWarningSettings (int clickedReadingId, View dialogView){
+        boolean result = false;
+        switch (clickedReadingId) {
+            case R.id.view_CO2_frame:
+                result = display_CO2.setValuesFromView(dialogView);
+                break;
+            case R.id.view_TVOC_frame:
+                result = display_TVOC.setValuesFromView(dialogView);
+                break;
+            case R.id.view_T1_frame:
+                result = display_T1.setValuesFromView(dialogView);
+                break;
+            case R.id.view_T2_frame:
+                result = display_T2.setValuesFromView(dialogView);
+                break;
+            case R.id.view_RH_frame:
+                result = display_RH.setValuesFromView(dialogView);
+                break;
+            case R.id.view_PR_frame:
+                result = display_PR.setValuesFromView(dialogView);
+                break;
+            default:
+                break;
+        }
+        return result;
+    }
+
+    //Find the MeasurementDisplay object that was clicked on
+    private MeasurementDisplay findAccordingSensorDisplay(int clickedReadingId) {
+        MeasurementDisplay selectedSensor = null;
+        switch (clickedReadingId) {
+            case R.id.view_CO2_frame:
+                selectedSensor = display_CO2;
+                break;
+            case R.id.view_TVOC_frame:
+                selectedSensor = display_TVOC;
+                break;
+            case R.id.view_T1_frame:
+                selectedSensor = display_T1;
+                break;
+            case R.id.view_T2_frame:
+                selectedSensor = display_T2;
+                break;
+            case R.id.view_RH_frame:
+                selectedSensor = display_RH;
+                break;
+            case R.id.view_PR_frame:
+                selectedSensor = display_PR;
+                break;
+            default:
+                selectedSensor = new MeasurementDisplay();
+                break;
+        }
+        return selectedSensor;
+    }
+
+    //Fill in the alert dialog with values from the clicked measurement
+    void fillInAlertDialogWithValues(View dialogView, MeasurementDisplay clickedMeasurement){
+        EditText hlaEditText = dialogView.findViewById(R.id.sensor_setup_HLA);
+        EditText hlEditText = dialogView.findViewById(R.id.sensor_setup_HLW);
+        EditText llEditText = dialogView.findViewById(R.id.sensor_setup_LLW);
+        EditText llaEditText = dialogView.findViewById(R.id.sensor_setup_LLA);
+        EditText hystEditText = dialogView.findViewById(R.id.sensor_setup_HYST);
+
+        hlaEditText.setText(String.valueOf(clickedMeasurement.getAlarmHighValue()));
+        hlEditText.setText(String.valueOf(clickedMeasurement.getWarningHighValue()));
+        llEditText.setText(String.valueOf(clickedMeasurement.getWarningLowValue()));
+        llaEditText.setText(String.valueOf(clickedMeasurement.getAlarmLowValue()));
+        hystEditText.setText(String.valueOf(clickedMeasurement.getHysteresis()));
     }
 
     private void updateSensorDataUI(SensorStation sensors){
@@ -296,6 +461,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "On resume");
         database.goOnline();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+        if (smoothCO2Timer == null){
+            startCO2FilterTimer();
+        }
         super.onResume();
     }
 
@@ -308,6 +476,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         timerHandler.removeCallbacks(runnableOldValueTimer);
+        startOldValueTimer();
         super.onPause();
     }
 
@@ -328,6 +497,10 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menu_main_list:
                 Intent logListIntent = new Intent(MainActivity.this, HistoryListActivity.class);
                 startActivity(logListIntent);
+                break;
+            case R.id.menu_main_settings:
+                Intent startSettingActivity = new Intent(this,MainSettingsActivity.class);
+                startActivity(startSettingActivity);
                 break;
             default:
                 return super.onOptionsItemSelected(item);

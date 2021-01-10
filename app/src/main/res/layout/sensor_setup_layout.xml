@@ -1,0 +1,64 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        style="@style/sensorSetupFrameStyle">
+        <TextView
+            style="@style/sensorSetupTextViewStyle"
+            android:text="HLA">
+        </TextView>
+        <EditText
+            android:id="@+id/sensor_setup_HLA"
+            style="@style/sensorSetupEditTextStyle">
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/sensorSetupFrameStyle">
+        <TextView
+            style="@style/sensorSetupTextViewStyle"
+            android:text="HLW">
+        </TextView>
+        <EditText
+            android:id="@+id/sensor_setup_HLW"
+            style="@style/sensorSetupEditTextStyle">
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/sensorSetupFrameStyle">
+        <TextView
+            style="@style/sensorSetupTextViewStyle"
+            android:text="LLW">
+        </TextView>
+        <EditText
+            android:id="@+id/sensor_setup_LLW"
+            style="@style/sensorSetupEditTextStyle">
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/sensorSetupFrameStyle">
+        <TextView
+            style="@style/sensorSetupTextViewStyle"
+            android:text="LLA">
+        </TextView>
+        <EditText
+            android:id="@+id/sensor_setup_LLA"
+            style="@style/sensorSetupEditTextStyle">
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/sensorSetupFrameStyle">
+        <TextView
+            style="@style/sensorSetupTextViewStyle"
+            android:text="HYST">
+        </TextView>
+        <EditText
+            android:id="@+id/sensor_setup_HYST"
+            style="@style/sensorSetupEditTextStyle">
+        </EditText>
+    </LinearLayout>
+</LinearLayout>

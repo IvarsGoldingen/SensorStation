@@ -34,7 +34,6 @@ import butterknife.ButterKnife;
 
 public class GraphActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
-    //TODO:Create y axis min max setups
     //TODO:Display message if no data to show
 
     String TAG = "SensorStationGraph";

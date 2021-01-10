@@ -4,14 +4,18 @@ package com.example.sensorstation;
 Used to format the measured values in the UI
 * */
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 
 public class MeasurementDisplay {
     //TODO: implement hysteresis
+    //TODO: shared preferences can't store doubles directly
 
     private static final int NO_DATA_PROVIDED = -1;
     private static final int COLOR_WARNING = 0xFFFF6D00;
@@ -24,6 +28,7 @@ public class MeasurementDisplay {
     private static final int STATE_HIGH_WARNING = 3;
     private static final int STATE_HIGH_ALARM = 4;
     private static final int STATE_OK = 5;
+    private static final String PREFERENCE_FILE_KEY = "ALARM_WARNING_SETTINGS";
 
 
     //actual reading
@@ -39,24 +44,139 @@ public class MeasurementDisplay {
     private double hysteresis = NO_DATA_PROVIDED;
     private int state = STATE_OK;
     private DecimalFormat format;
+    private String preferenceKey;
+    private Context context;
 
     public MeasurementDisplay() {
 
     }
 
-
-    public MeasurementDisplay(double alarmLowValue,
-                              double warningLowValue,
-                              double warningHighValue,
-                              double alarmHighValue,
-                              double hysteresis,
+    public MeasurementDisplay(
+            Context context,
+            String preferenceKey,
+                              double defaultAlarmLowValue,
+                              double defaultWarningLowValue,
+                              double defaultWarningHighValue,
+                              double defaultAlarmHighValue,
+                              double defaultHysteresis,
                               DecimalFormat format) {
-        this.warningHighValue = warningHighValue;
-        this.warningLowValue = warningLowValue;
-        this.alarmHighValue = alarmHighValue;
-        this.alarmLowValue = alarmLowValue;
-        this.hysteresis = hysteresis;
+        this.preferenceKey = preferenceKey;
+        this.context = context;
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+        sharedPreferences.getFloat(preferenceKey + "HLA", (float) defaultAlarmHighValue);
+        sharedPreferences.getFloat(preferenceKey + "HL", (float) defaultWarningHighValue);
+        sharedPreferences.getFloat(preferenceKey + "LL", (float) defaultWarningLowValue);
+        sharedPreferences.getFloat(preferenceKey + "LLA", (float) defaultAlarmLowValue);
+        sharedPreferences.getFloat(preferenceKey + "HYST", (float) defaultHysteresis);
+
+        this.alarmHighValue = sharedPreferences.getFloat(preferenceKey + "HLA", (float) defaultAlarmHighValue);
+        this.warningHighValue = sharedPreferences.getFloat(preferenceKey + "HL", (float) defaultWarningHighValue);
+        this.warningLowValue = sharedPreferences.getFloat(preferenceKey + "LL", (float) defaultWarningLowValue);
+        this.alarmLowValue = sharedPreferences.getFloat(preferenceKey + "LLA", (float) defaultAlarmLowValue);
+        this.hysteresis = sharedPreferences.getFloat(preferenceKey + "HYST", (float) defaultHysteresis);
+
         this.format = format;
+    }
+
+    //Get the settings Alert dialog from main and use the editexts to set the values of
+    //warning and alarms
+    //Returns true if setting values are correct
+    public boolean setValuesFromView(View dialogView){
+        EditText hlaEditText = dialogView.findViewById(R.id.sensor_setup_HLA);
+        EditText hlEditText = dialogView.findViewById(R.id.sensor_setup_HLW);
+        EditText llEditText = dialogView.findViewById(R.id.sensor_setup_LLW);
+        EditText llaEditText = dialogView.findViewById(R.id.sensor_setup_LLA);
+        EditText hystEditText = dialogView.findViewById(R.id.sensor_setup_HYST);
+
+        String hla = hlaEditText.getText().toString();
+        String hl = hlEditText.getText().toString();
+        String ll = llEditText.getText().toString();
+        String lla = llaEditText.getText().toString();
+        String hyst = hystEditText.getText().toString();
+
+        double newHLA;
+        double newHL;
+        double newLL;
+        double newLLA;
+        double newHYST;
+
+        try {
+            newHLA = Double.parseDouble(hla);
+            newHL = Double.parseDouble(hl);
+            newLL = Double.parseDouble(ll);
+            newLLA = Double.parseDouble(lla);
+            newHYST = Double.parseDouble(hyst);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            //Entered values are not numbers
+            return false;
+        }
+
+        if (this.setAlarmHighValue(newHLA) &&
+                this.setWarningHighValue(newHL) &&
+                this.setWarningLowValue(newLL) &&
+                this.setAlarmLowValue(newLLA) &&
+                this.setHysteresis(newHYST)){
+            //all values entered correctly
+            return true;
+        }
+        //Some value entered does not make sense
+        return false;
+    }
+
+    private void saveInPrefs(String key, double value){
+        SharedPreferences preferences = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putFloat(preferenceKey + key, (float)value);
+        editor.apply();
+    }
+
+    public boolean setAlarmHighValue(double alarmHighValue) {
+        if (alarmHighValue >= warningHighValue){
+            saveInPrefs("HLA", alarmHighValue);
+            this.alarmHighValue = alarmHighValue;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean setWarningHighValue(double warningHighValue) {
+        if (warningHighValue <= alarmHighValue &&
+                warningHighValue > warningLowValue){
+            saveInPrefs("HL", warningHighValue);
+            this.warningHighValue = warningHighValue;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean setWarningLowValue(double warningLowValue) {
+        if (warningLowValue < warningHighValue &&
+                warningLowValue >= alarmLowValue){
+            saveInPrefs("LL", warningLowValue);
+            this.warningLowValue = warningLowValue;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean setAlarmLowValue(double alarmLowValue) {
+        if (alarmLowValue <= warningLowValue){
+            saveInPrefs("LLA", alarmLowValue);
+            this.alarmLowValue = alarmLowValue;
+            return true;
+        }
+        return false;
+    }
+
+
+    public boolean setHysteresis(double hysteresis) {
+        if (hysteresis >= 0){
+            saveInPrefs("HYST", hysteresis);
+            this.hysteresis = hysteresis;
+            return true;
+        }
+        return false;
     }
 
     public void updateView (TextView view){
@@ -114,4 +234,30 @@ public class MeasurementDisplay {
     public void setOld(boolean old) {
         this.old = old;
     }
+
+    public double getWarningHighValue() {
+        return warningHighValue;
+    }
+
+
+
+    public double getWarningLowValue() {
+        return warningLowValue;
+    }
+
+
+
+    public double getAlarmHighValue() {
+        return alarmHighValue;
+    }
+
+    public double getAlarmLowValue() {
+        return alarmLowValue;
+    }
+
+    public double getHysteresis() {
+        return hysteresis;
+    }
+
+
 }
