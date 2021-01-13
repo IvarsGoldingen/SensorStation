@@ -1,6 +1,7 @@
 package com.example.sensorstation;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -45,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
      * TODO: Sometimes the MC only uploads the time without values
      * TODO: Evening notification of CO2
      * TODO: CO2 filter value and frequency setting
-     * TODO: Save HLA, LLA and other settings to a seperate shared preferences file
      * TODO: Implement hysteresis for MeasurementDisplay
     */
 
@@ -428,13 +428,15 @@ public class MainActivity extends AppCompatActivity {
 
     //Timer that smooths out the CO2 measurement
     private void startCO2FilterTimer(){
-        smoothCO2Timer = new Timer();
-        smoothCO2Timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                timerMethod();
-            }
-        },1000,1000);
+        if (smoothCO2Timer == null){
+            smoothCO2Timer = new Timer();
+            smoothCO2Timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    timerMethod();
+                }
+            },1000,1000);
+        }
     }
 
     //A runnable that the timer can run on the UI thread
@@ -461,22 +463,23 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "On resume");
         database.goOnline();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
-        if (smoothCO2Timer == null){
-            startCO2FilterTimer();
-        }
+        startCO2FilterTimer();
         super.onResume();
     }
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "On pause");
         database.goOffline();
         if (smoothCO2Timer != null){
+            Log.d(TAG, "Cancel and purge");
             smoothCO2Timer.cancel();
             smoothCO2Timer.purge();
+        } else {
+            Log.d(TAG, "No timer to cancel");
         }
         mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         timerHandler.removeCallbacks(runnableOldValueTimer);
-        startOldValueTimer();
         super.onPause();
     }
 

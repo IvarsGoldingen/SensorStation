@@ -180,35 +180,79 @@ public class MeasurementDisplay {
     }
 
     public void updateView (TextView view){
-
+        boolean changeColor = true;
         int colorToUse = COLOR_INVALID;
         if (old){
             colorToUse = COLOR_OLD;
         } else if (valid){
-            //TODO:hysteresis
-//            if (state != STATE_OK){
-//                if (state == STATE_LOW_ALARM){
-//
-//                }
-//            }
             //value valid
-            if (value <= alarmLowValue ||
-                    value >= alarmHighValue) {
-                //ALARM STATE
-                colorToUse = COLOR_ALARM;
-            } else if (value <= warningLowValue ||
-                    value >= warningHighValue){
-                //WARNING STATE
-                colorToUse = COLOR_WARNING;
+            if (state == STATE_OK){
+                //if the state was OK, the color settings can be done without extra checks, because
+                //hysteresis calculation is not needed.
+                colorToUse = getColorSetState();
             } else {
-                //view.setBackgroundColor(COLOR_OK);
-                colorToUse = COLOR_OK;
+                //The alarm already is in a ALARM OR WARNING STATE,
+                //check for hysteresis
+                //If hysteresis value for change + hysteresis achieved set color, else leave the
+                //previous
+                if (state == STATE_LOW_ALARM){
+                    if (value > alarmLowValue + hysteresis){
+                        colorToUse = getColorSetState();
+                    } else {
+                        changeColor = false;
+                    }
+                } else if (state == STATE_LOW_WARNING){
+                    if (value > warningLowValue + hysteresis ||
+                        value <= alarmLowValue){
+                        colorToUse = getColorSetState();
+                    }else {
+                        changeColor = false;
+                    }
+                } else if (state == STATE_HIGH_WARNING){
+                    if (value < warningHighValue - hysteresis ||
+                        value >= alarmHighValue){
+                        colorToUse = getColorSetState();
+                    }else {
+                        changeColor = false;
+                    }
+                } else if (state == STATE_HIGH_ALARM){
+                    if (value < alarmHighValue - hysteresis){
+                        colorToUse = getColorSetState();
+                    }else {
+                        changeColor = false;
+                    }
+                }
             }
         }
-        view.getBackground().setColorFilter(colorToUse,
-                PorterDuff.Mode.SRC_ATOP
-        );
+        if (changeColor){
+            view.getBackground().setColorFilter(colorToUse,
+                    PorterDuff.Mode.SRC_ATOP
+            );
+        }
+
+        //TODO: this is not needed here
         view.setText(format.format(value));
+    }
+
+    //
+    private int getColorSetState(){
+        int colorToUse;
+        if (value <= alarmLowValue) {
+            colorToUse = COLOR_ALARM;
+            state = STATE_LOW_ALARM;
+        } else if (value >= alarmHighValue) {
+            colorToUse = COLOR_ALARM;
+            state = STATE_HIGH_ALARM;
+        } else if (value >= warningHighValue){
+            colorToUse = COLOR_WARNING;
+            state = STATE_HIGH_WARNING;
+        } else if (value <= warningLowValue){
+            colorToUse = COLOR_WARNING;
+            state = STATE_LOW_WARNING;
+        } else {
+            colorToUse = COLOR_OK;
+        }
+        return colorToUse;
     }
 
     public double getValue() {
