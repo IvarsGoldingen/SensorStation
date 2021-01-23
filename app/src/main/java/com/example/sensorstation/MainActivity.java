@@ -1,13 +1,21 @@
 package com.example.sensorstation;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PorterDuff;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -36,6 +44,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -45,8 +54,10 @@ public class MainActivity extends AppCompatActivity {
     /**
      * TODO: Sometimes the MC only uploads the time without values
      * TODO: Evening notification of CO2
+     * TODO: Notification of high CO2
      * TODO: CO2 filter value and frequency setting
-     * TODO: Implement hysteresis for MeasurementDisplay
+     * TODO: Work with withings app
+     * TODO: Save averages in an SQL database. Avarage CO2 over night
     */
 
     @BindView(R.id.CO2value)
@@ -78,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
+    private static final String MY_WORKER_NAME = "myWorkerName";
     //If the value received from firebase is older than this, display it to the user
     private static final long MAX_TIME_DIF_S = 60;
     private static final long MAX_TIME_DIF_MS = MAX_TIME_DIF_S * 1000;
@@ -88,6 +100,9 @@ public class MainActivity extends AppCompatActivity {
     private static final long OLD_VALUE_TIME_MS = 10000;
     //TAG
     private static final String TAG = "Sensor Station MainActivity";
+
+    //for notification
+    private final String CHANNEL_ID = "MyChannel";
 
     //For the initial read from the firebase
     boolean firstValue = true;
@@ -170,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.w("TAG", "Start");
+        Log.d(TAG, "Start");
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -242,6 +257,65 @@ public class MainActivity extends AppCompatActivity {
         frameT2.setOnClickListener(sensorItemClickListener);
         frameRH.setOnClickListener(sensorItemClickListener);
         framePR.setOnClickListener(sensorItemClickListener);
+    }
+
+    void createCo2CheckWorker(){
+
+        PeriodicWorkRequest testPeriodicWorker =
+                new PeriodicWorkRequest.Builder(TestWorker.class,
+                        60, TimeUnit.MINUTES,
+                        10, TimeUnit.MINUTES)
+                        .build();
+
+        WorkManager workManager = WorkManager.getInstance(this);
+        workManager
+                .enqueueUniquePeriodicWork(
+                        MY_WORKER_NAME,
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        testPeriodicWorker);
+    }
+
+    void stopWorker(){
+        Log.d(TAG, "Stopping worker");
+        WorkManager
+                .getInstance(this)
+                .cancelUniqueWork(MY_WORKER_NAME);
+    }
+
+    void createNotification(){
+        createNotificationChannel();
+
+        //Create an intent that will open this app
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,0,intent,0);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_baseline_eco_48)
+                .setContentTitle("Test notification")
+                .setContentText("Test notification text")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notManager = NotificationManagerCompat.from(this);
+        notManager.notify(5, notificationBuilder.build());
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "MyChannelName";
+            String description = "MyChannelDescription";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     //Create alert dialog for filling HLA, HL, LL, LLA,HYSt values
@@ -429,6 +503,7 @@ public class MainActivity extends AppCompatActivity {
     //Timer that smooths out the CO2 measurement
     private void startCO2FilterTimer(){
         if (smoothCO2Timer == null){
+            Log.d(TAG, "Starting CO2 filter timer");
             smoothCO2Timer = new Timer();
             smoothCO2Timer.schedule(new TimerTask() {
                 @Override
@@ -436,6 +511,8 @@ public class MainActivity extends AppCompatActivity {
                     timerMethod();
                 }
             },1000,1000);
+        } else {
+            Log.d(TAG, "Timer is not null");
         }
     }
 
@@ -462,8 +539,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         Log.d(TAG, "On resume");
         database.goOnline();
+        firstValue = true;
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
-        startCO2FilterTimer();
+        //When the app is open do not use the worker
+        stopWorker();
         super.onResume();
     }
 
@@ -475,11 +554,14 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Cancel and purge");
             smoothCO2Timer.cancel();
             smoothCO2Timer.purge();
+            smoothCO2Timer = null;
         } else {
             Log.d(TAG, "No timer to cancel");
         }
         mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         timerHandler.removeCallbacks(runnableOldValueTimer);
+        //Make a background CO2 checker when leaving the app
+        createCo2CheckWorker();
         super.onPause();
     }
 
