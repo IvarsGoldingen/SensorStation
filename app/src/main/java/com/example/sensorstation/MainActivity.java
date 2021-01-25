@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * TODO: Sometimes the MC only uploads the time without values
-     * TODO: Evening notification of CO2
      * TODO: Notification of high CO2
      * TODO: CO2 filter value and frequency setting
      * TODO: Work with withings app
@@ -89,6 +88,9 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
+    //Determines when the worker should execute
+    private static final int WORKER_REPEAT_INTERVAL_M = 15;
+    private static final int WORKER_FLEX_INTERVAL = 10;
     private static final String MY_WORKER_NAME = "myWorkerName";
     //If the value received from firebase is older than this, display it to the user
     private static final long MAX_TIME_DIF_S = 60;
@@ -227,7 +229,6 @@ public class MainActivity extends AppCompatActivity {
                         //so the message does not apear every time resuming the app
                         Snackbar.make(sv, "Signed in!", Snackbar.LENGTH_SHORT).show();
                     }
-
                 } else {
                     //user not signed in
                     startActivityForResult(
@@ -259,12 +260,16 @@ public class MainActivity extends AppCompatActivity {
         framePR.setOnClickListener(sensorItemClickListener);
     }
 
-    void createCo2CheckWorker(){
 
+
+
+    //A worker that will create a notification if CO2 value is too high
+    void createCo2CheckWorker(){
+        Log.d(TAG, "Starting worker");
         PeriodicWorkRequest testPeriodicWorker =
                 new PeriodicWorkRequest.Builder(TestWorker.class,
-                        60, TimeUnit.MINUTES,
-                        10, TimeUnit.MINUTES)
+                        WORKER_REPEAT_INTERVAL_M, TimeUnit.MINUTES,
+                        WORKER_FLEX_INTERVAL, TimeUnit.MINUTES)
                         .build();
 
         WorkManager workManager = WorkManager.getInstance(this);
@@ -284,7 +289,6 @@ public class MainActivity extends AppCompatActivity {
 
     void createNotification(){
         createNotificationChannel();
-
         //Create an intent that will open this app
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -475,7 +479,7 @@ public class MainActivity extends AppCompatActivity {
         long currentDateEpoch = currentDate.getTime();
         //time difference in miliseconds
         long differenceMS = currentDateEpoch - timeOfValue;
-        Log.d(TAG, "Last update ms ago: " + String.valueOf(differenceMS));
+        Log.d(TAG, "Last update ms ago: " + differenceMS);
         if (differenceMS > MAX_TIME_DIF_MS){
             View sv = findViewById(R.id.main_root);
             Snackbar.make(sv, "Old values", Snackbar.LENGTH_SHORT).show();

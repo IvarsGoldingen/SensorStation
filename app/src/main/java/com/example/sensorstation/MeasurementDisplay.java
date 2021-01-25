@@ -276,6 +276,7 @@ public class MeasurementDisplay {
     }
 
     public void setOld(boolean old) {
+        //TODO: Set the current color here if is old == false
         this.old = old;
     }
 
