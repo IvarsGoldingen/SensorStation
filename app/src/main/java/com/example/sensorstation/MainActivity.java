@@ -2,12 +2,14 @@ package com.example.sensorstation;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
      * TODO: CO2 filter value and frequency setting
      * TODO: Work with withings app
      * TODO: Save averages in an SQL database. Avarage CO2 over night
+     * TODO: On start make the value some color - problem with CO2 view
     */
 
     @BindView(R.id.CO2value)
@@ -188,8 +191,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "Start");
-
         super.onCreate(savedInstanceState);
+
+        Logger.writeDatedLog("Main", this);
+
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         createMeasurementDisplayObjects();
@@ -251,6 +256,9 @@ public class MainActivity extends AppCompatActivity {
                 createAlertDialogForReading(id);
             }
         };
+
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
 
         frameCO2.setOnClickListener(sensorItemClickListener);
         frameTVOC.setOnClickListener(sensorItemClickListener);

@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="PREF_KEY_MAIN_NOTIFICATIONS_ENABLED"
+        android:title="Enable high CO2 notification"/>
+    <EditTextPreference
+        android:defaultValue="22:00"
+        android:key="PREF_KEY_MAIN_STOP_NOTIFICATIONS"
+        android:title="Stop high CO2 notifications time"/>
+    <EditTextPreference
+        android:defaultValue="07:00"
+        android:key="PREF_KEY_MAIN_START_NOTIFICATIONS"
+        android:title="Start high CO2 notifications time"/>
 </PreferenceScreen>

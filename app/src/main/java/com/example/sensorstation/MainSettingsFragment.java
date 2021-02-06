@@ -17,11 +17,11 @@ public class MainSettingsFragment extends PreferenceFragmentCompat
         PreferenceScreen preferenceScreen = getPreferenceScreen();
         SharedPreferences sharedPreferences = preferenceScreen.getSharedPreferences();
         int count = preferenceScreen.getPreferenceCount();
-        for (int i =0; i < count; i++){
-            Preference p = preferenceScreen.getPreference(i);
-            String value = sharedPreferences.getString(p.getKey(), "0");
-            p.setSummary(value);
-        }
+//        for (int i =0; i < count; i++){
+//            Preference p = preferenceScreen.getPreference(i);
+//            String value = sharedPreferences.getString(p.getKey(), "0");
+//            p.setSummary(value);
+//        }
     }
 
     @Override

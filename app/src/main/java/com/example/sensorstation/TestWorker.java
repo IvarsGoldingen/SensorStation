@@ -49,21 +49,26 @@ public class TestWorker extends Worker {
     public TestWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
         this.context = context;
+        Logger.writeDatedLog("Worker constructor", context);
         Log.d(TAG, "Worker INITIALIZED");
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        //Toast.makeText(context, "Worker text", Toast.LENGTH_SHORT).show();
+        Logger.writeDatedLog("Worker doWork()", context);
         Log.d(TAG, "Worker doing stuff");
         database = FirebaseDatabase.getInstance();
+        database.goOnline();
         fbRef = database.getReference().child("SensorStation");
         listener = (new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Logger.writeDatedLog("onDataChange", context);
                 Log.d(TAG, "Worker data changed in FB");
-                analyzeData(dataSnapshot.getValue(SensorStation.class));
+                SensorStation sensorStation = dataSnapshot.getValue(SensorStation.class);
+                analyzeData(sensorStation);
+
                 database.goOffline();
             }
             @Override
@@ -83,6 +88,7 @@ public class TestWorker extends Worker {
             Log.d(TAG, "Worker CO2 is " + co2);
             Log.d(TAG, "CO2 HLA is " + getCo2HoghAlarmValue());
             if (co2 >= getCo2HoghAlarmValue()){
+                Logger.writeDatedLog("CO2 is high: " + co2, context);
                 Log.d(TAG, "Worker CO2 value is too HIGH");
                 //Show a notification if the CO2 value too high
                 createNotification(
@@ -91,8 +97,8 @@ public class TestWorker extends Worker {
                         "CO2 high notification",
                         "Notifies of high CO2 level"
                 );
-                createNotification(sensors.getCO2());
             } else {
+                Logger.writeDatedLog("CO2 is good: " + co2, context);
                 Log.d(TAG, "Worker CO2 value is OK");
             }
         }
@@ -103,10 +109,16 @@ public class TestWorker extends Worker {
         long currentDateEpoch = currentDate.getTime();
         //time difference in miliseconds
         long differenceMS = currentDateEpoch - timeOfValue;
+        String timeLog = "Current time ms: " + currentDateEpoch + "\n" +
+                "Value save time:" + timeOfValue + "\n" +
+                "Difference: " + differenceMS;
+        Logger.writeDatedLog(timeLog, context);
         Log.d(TAG, "Worker Last update ms ago: " + differenceMS);
         if (differenceMS > MAX_CO2_VALUE_AGE){
+            Logger.writeDatedLog("Value is old", context);
             //value is old
             if (differenceMS > CRITICAL_VALUE_AGE_MS){
+                Logger.writeDatedLog("Value is very old :D", context);
                 int differenceInHours = (int)(differenceMS/1000/60/60);
                 //Notify of old values in database
                 createNotification(
@@ -118,6 +130,7 @@ public class TestWorker extends Worker {
             }
             return false;
         } else {
+            Logger.writeDatedLog("Value is recent", context);
             return true;
         }
     }
