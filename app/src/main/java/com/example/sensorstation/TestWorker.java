@@ -49,6 +49,7 @@ public class TestWorker extends Worker {
     public TestWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
         this.context = context;
+        Logger.writeDatedLog("***************************************", context);
         Logger.writeDatedLog("Worker constructor", context);
         Log.d(TAG, "Worker INITIALIZED");
     }

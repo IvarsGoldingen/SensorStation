@@ -114,7 +114,6 @@ public class GraphSettingsFragment extends PreferenceFragmentCompat
         String prefKey = preference.getKey();
         String settingValue = (String) newValue;
         int settingIntValue = -9999;
-        //TODO: A check so that the MIN value is not bigger than MAX
         //Check that the numeric values can be cast to ints
         if (prefKey.equals("PREF_KEY_GR_CO2_Y_MIN") ||
                 prefKey.equals("PREF_KEY_GR_CO2_Y_MAX")||
