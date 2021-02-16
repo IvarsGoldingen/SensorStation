@@ -14,9 +14,13 @@ import androidx.preference.PreferenceScreen;
 
 import com.google.android.material.snackbar.Snackbar;
 
+
+
 public class MainSettingsFragment extends PreferenceFragmentCompat
         implements SharedPreferences.OnSharedPreferenceChangeListener,
         Preference.OnPreferenceChangeListener{
+
+    private static final String TAG = "MainSettingsFragment";
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -67,13 +71,45 @@ public class MainSettingsFragment extends PreferenceFragmentCompat
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
+        Log.d(TAG, "onPreferenceChange");
         String prefKey = preference.getKey();
-        String settingValue = (String) newValue;
 
-        View view = getActivity().findViewById(R.id.settings_main);
-        Snackbar errorSnackbar = Snackbar.make(view, "onPreferenceChange" + settingValue, Snackbar.LENGTH_SHORT);
-
+        if (prefKey.equals("PREF_KEY_MAIN_STOP_NOTIFICATIONS") ||
+                prefKey.equals("PREF_KEY_MAIN_START_NOTIFICATIONS")){
+            String settingValue = (String) newValue;
+            if (!isTimeValid(settingValue)){
+                View view = getActivity().findViewById(R.id.settings_main);
+                Snackbar errorSnackbar = Snackbar.make(view, "Invalid time value", Snackbar.LENGTH_SHORT);
+                errorSnackbar.show();
+                return false;
+            }
+        }
         return true;
+    }
+
+    private boolean isTimeValid(String timeString){
+        String [] timeNumbers = timeString.split(":", 2);
+        int hours = -10;
+        int minutes = -10;
+        //Try to get numbers from the String setting
+        try {
+            hours = Integer.parseInt(timeNumbers[0]);
+            minutes = Integer.parseInt(timeNumbers[1]);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            //Value cannot be converted to numbers
+            return false;
+        }
+        //Check if numbers are valid to 24 hour format
+        if (hours >= 0 && hours <= 24 &&
+        minutes >= 0 && minutes <=59){
+            if (hours == 24 && minutes != 0){
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -26,6 +26,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TestWorker extends Worker {
     private static String TAG = "Worker Test";
@@ -39,47 +41,127 @@ public class TestWorker extends Worker {
     private static final long CRITICAL_VALUE_AGE_S = CRITICAL_VALUE_AGE_M * 60;
     private static final long CRITICAL_VALUE_AGE_MS = CRITICAL_VALUE_AGE_S * 1000;
 
-
-
     private DatabaseReference fbRef;
     private ValueEventListener listener;
     private FirebaseDatabase database;
     private Context context;
+
+    //A timer that keeps track of how long the worker has been running and stops it
+    //if a value from FB database cannot be retreived
+    private Timer workerTimer = new Timer();
+    private static final long MAX_WORKER_RUNTIME_MS = 60 * 1000;
 
     public TestWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
         this.context = context;
         Logger.writeDatedLog("***************************************", context);
         Logger.writeDatedLog("Worker constructor", context);
-        Log.d(TAG, "Worker INITIALIZED");
     }
 
     @NonNull
     @Override
     public Result doWork() {
         Logger.writeDatedLog("Worker doWork()", context);
-        Log.d(TAG, "Worker doing stuff");
-        database = FirebaseDatabase.getInstance();
-        database.goOnline();
-        fbRef = database.getReference().child("SensorStation");
-        listener = (new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Logger.writeDatedLog("onDataChange", context);
-                Log.d(TAG, "Worker data changed in FB");
-                SensorStation sensorStation = dataSnapshot.getValue(SensorStation.class);
-                analyzeData(sensorStation);
-
-                database.goOffline();
-            }
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
-        fbRef.addListenerForSingleValueEvent(listener);
+        if (notificationsAllowed()){
+            createTimer();
+            database = FirebaseDatabase.getInstance();
+            database.goOnline();
+            fbRef = database.getReference().child("SensorStation");
+            listener = (new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Logger.writeDatedLog("onDataChange", context);
+                    Log.d(TAG, "Worker data changed in FB");
+                    SensorStation sensorStation = dataSnapshot.getValue(SensorStation.class);
+                    analyzeData(sensorStation);
+                }
+                @Override
+                public void onCancelled(DatabaseError error) {
+                    // Failed to read value
+                    Log.w(TAG, "Failed to read value.", error.toException());
+                }
+            });
+            fbRef.addValueEventListener(listener);
+        }
         return Result.success();
+    }
+
+    //Create timer to allow a connection to the DB only for a certain time
+    private void createTimer(){
+        //timer test
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                finishWorker();
+            }
+        };
+        workerTimer.schedule(task, MAX_WORKER_RUNTIME_MS);
+    }
+
+    private void finishWorker(){
+        workerTimer.cancel();
+        workerTimer.purge();
+        database.goOffline();
+    }
+
+    //Check if notifications are allowed at all and if at this time
+    private boolean notificationsAllowed(){
+        //Get notification settings from prefs
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Boolean notifEnabled = sharedPreferences.getBoolean("PREF_KEY_MAIN_NOTIFICATIONS_ENABLED", true);
+        String endTime = sharedPreferences.getString("PREF_KEY_MAIN_STOP_NOTIFICATIONS", "22:00");
+        String startTime = sharedPreferences.getString("PREF_KEY_MAIN_START_NOTIFICATIONS", "07:00");
+        //Check if notification enabled at all
+        if (!notifEnabled){
+            //this should not happen, since the worker should be not turned on at all
+            Logger.writeDatedLog("Notifications not allowed", context);
+            return false;
+        } else {
+            Logger.writeDatedLog("Notifications allowed", context);
+        }
+
+        //Create int from String setting
+        String [] stopTimeNumbers = endTime.split(":", 2);
+        String [] startTimeNumbers = startTime.split(":", 2);
+        int stopHours = -10;
+        int stopMinutes = -10;
+        int startHours = -10;
+        int startMinutes = -10;
+        try {
+            stopHours = Integer.parseInt(stopTimeNumbers[0]);
+            stopMinutes = Integer.parseInt(stopTimeNumbers[1]);
+            startHours = Integer.parseInt(startTimeNumbers[0]);
+            startMinutes = Integer.parseInt(startTimeNumbers[1]);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            Logger.writeDatedLog("Error creating time ints", context);
+            //Value cannot be converted to numbers
+            return false;
+        }
+
+        //Compare time setting with current time
+        Calendar time = Calendar.getInstance();
+        int currentHour = time.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = time.get(Calendar.MINUTE);
+        Logger.writeDatedLog("Start hour: " + startHours + "Start minute" + startMinutes, context);
+        Logger.writeDatedLog("Stop hour: " + stopHours + "Stop minute" + stopMinutes, context);
+        Logger.writeDatedLog("Current time: " + currentHour + ":" + currentMinute, context);
+        if (currentHour >= startHours &&
+            currentHour <= stopHours){
+            if (currentHour == startHours){
+                if (currentMinute >= startMinutes){
+                    return true;
+                }
+            } else if (currentHour == stopHours) {
+                if (currentMinute < stopMinutes){
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
+        Logger.writeDatedLog("Out of time bounds", context);
+        return false;
     }
 
     //Determines if and what notification should be shown to the user
@@ -102,6 +184,8 @@ public class TestWorker extends Worker {
                 Logger.writeDatedLog("CO2 is good: " + co2, context);
                 Log.d(TAG, "Worker CO2 value is OK");
             }
+            //a recent value from FB DB has been gotten, finish the worker
+            finishWorker();
         }
     }
 
@@ -139,7 +223,7 @@ public class TestWorker extends Worker {
     int getCo2HoghAlarmValue(){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         int co2 = Integer.parseInt(sharedPreferences.
-                getString("PREF_KEY_GR_CO2_Y_MAX", "1000"));
+                getString("CO2_PREFS" + "HLA", "1000"));
         return co2;
     }
 

@@ -54,6 +54,9 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity {
 
     /**
+     * TODO: Crete worker only if it is enabled
+     * TODO: Remove signed in notification
+     * TODO: Troubleshoot old values comming in from Worker
      * TODO: Sometimes the MC only uploads the time without values
      * TODO: Notification of high CO2
      * TODO: CO2 filter value and frequency setting
