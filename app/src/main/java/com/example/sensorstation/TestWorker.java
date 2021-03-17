@@ -33,7 +33,7 @@ public class TestWorker extends Worker {
     private static String TAG = "Worker Test";
     private final String NOTIFICATION_CHANNEL_ID = "MyNotificationChannel";
     //If the value received from firebase is older than this, do not display notification
-    private static final long MAX_TIME_DIF_S = 6000;
+    private static final long MAX_TIME_DIF_S = 60;
     private static final long MAX_CO2_VALUE_AGE = MAX_TIME_DIF_S * 1000;
     //Old values in DB notification will be shown if value received from FB is this old
     private static final long CRITICAL_VALUE_AGE_H = 6;
@@ -50,6 +50,8 @@ public class TestWorker extends Worker {
     //if a value from FB database cannot be retreived
     private Timer workerTimer = new Timer();
     private static final long MAX_WORKER_RUNTIME_MS = 60 * 1000;
+    //Used to check whether an old value notification should be shown
+    private long ageOfLastValue = 0;
 
     public TestWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -92,7 +94,10 @@ public class TestWorker extends Worker {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
+                //The timer passed and a recent value was not received
                 finishWorker();
+                //Check if a notification of a very old value should be shown.
+                checkAgeOflastValue();
             }
         };
         workerTimer.schedule(task, MAX_WORKER_RUNTIME_MS);
@@ -102,6 +107,21 @@ public class TestWorker extends Worker {
         workerTimer.cancel();
         workerTimer.purge();
         database.goOffline();
+    }
+
+    private void checkAgeOflastValue(){
+        //value is old
+        if (ageOfLastValue > CRITICAL_VALUE_AGE_MS){
+            Logger.writeDatedLog("Value is very old :D", context);
+            int differenceInHours = (int)(ageOfLastValue/1000/60/60);
+            //Notify of old values in database
+            createNotification(
+                    "Database not updated",
+                    "Values is " + differenceInHours + "h old!",
+                    "Old values notification",
+                    "Notifies of old values in database"
+            );
+        }
     }
 
     //Check if notifications are allowed at all and if at this time
@@ -193,26 +213,14 @@ public class TestWorker extends Worker {
         Date currentDate = Calendar.getInstance().getTime();
         long currentDateEpoch = currentDate.getTime();
         //time difference in miliseconds
-        long differenceMS = currentDateEpoch - timeOfValue;
+        ageOfLastValue = currentDateEpoch - timeOfValue;
         String timeLog = "Current time ms: " + currentDateEpoch + "\n" +
                 "Value save time:" + timeOfValue + "\n" +
-                "Difference: " + differenceMS;
+                "Difference: " + ageOfLastValue;
         Logger.writeDatedLog(timeLog, context);
-        Log.d(TAG, "Worker Last update ms ago: " + differenceMS);
-        if (differenceMS > MAX_CO2_VALUE_AGE){
+        Log.d(TAG, "Worker Last update ms ago: " + ageOfLastValue);
+        if (ageOfLastValue > MAX_CO2_VALUE_AGE){
             Logger.writeDatedLog("Value is old", context);
-            //value is old
-            if (differenceMS > CRITICAL_VALUE_AGE_MS){
-                Logger.writeDatedLog("Value is very old :D", context);
-                int differenceInHours = (int)(differenceMS/1000/60/60);
-                //Notify of old values in database
-                createNotification(
-                        "Database not updated",
-                        "Values is " + differenceInHours + "h old!",
-                        "Old values notification",
-                        "Notifies of old values in database"
-                );
-            }
             return false;
         } else {
             Logger.writeDatedLog("Value is recent", context);

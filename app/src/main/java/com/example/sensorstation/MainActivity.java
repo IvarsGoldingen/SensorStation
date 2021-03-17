@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * TODO: Crete worker only if it is enabled
+     * TODO: Trouble shoot sometimes main not receiving new values
      * TODO: Remove signed in notification
      * TODO: Troubleshoot old values comming in from Worker
      * TODO: Sometimes the MC only uploads the time without values
@@ -95,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     //Determines when the worker should execute
-    private static final int WORKER_REPEAT_INTERVAL_M = 15;
-    private static final int WORKER_FLEX_INTERVAL = 10;
+    private static final int WORKER_REPEAT_INTERVAL_M = 60;
+    private static final int WORKER_FLEX_INTERVAL = 30;
     private static final String MY_WORKER_NAME = "myWorkerName";
     //If the value received from firebase is older than this, display it to the user
     private static final long MAX_TIME_DIF_S = 60;
@@ -203,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
         createMeasurementDisplayObjects();
 
         database = FirebaseDatabase.getInstance();
+        database.goOnline();
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         //Start a timer which will display that no new values have been added for some time
