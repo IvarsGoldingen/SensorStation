@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +16,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -88,16 +90,24 @@ public class GraphActivity extends AppCompatActivity implements SharedPreference
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 //snapshot - contains the added log
-                LogItem logData = snapshot.getValue(LogItem.class);
-                if(Helper.isLogValueOld(logData.getTime())){
-                    //if value is old, delete the data
-                    Log.d(TAG, "Value is old, delete");
+                try{
+                    LogItem logData = snapshot.getValue(LogItem.class);
+                    if(Helper.isLogValueOld(logData.getTime())){
+                        //if value is old, delete the data
+                        Log.d(TAG, "Value is old, delete");
+                        snapshot.getRef().removeValue();
+                    } else {
+                        //if the value is not old, add the data to the arrayList
+                        Log.d(TAG, "Value is new, adding to array List");
+                        mLogArrayList.add(logData);
+                        updateGraph();
+                    }
+                } catch (Exception e) {
+                    View sv = findViewById(R.id.root_graph);
+                    Snackbar.make(sv, "Faulty value in DB", Snackbar.LENGTH_SHORT).show();
+                    Log.d(TAG, "Faulty value in DB: " + snapshot.toString());
                     snapshot.getRef().removeValue();
-                } else {
-                    //if the value is not old, add the data to the arrayList
-                    Log.d(TAG, "Value is new, adding to array List");
-                    mLogArrayList.add(logData);
-                    updateGraph();
+                    e.printStackTrace();
                 }
             }
 
